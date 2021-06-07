@@ -168,6 +168,16 @@ def main():
             cmd = f"pdfcrop --noverbose --margins '0 0 180 -10' '{pdf_file}' '{pdf_file}' >> /dev/null"
             os.system(cmd)
 
+            # make all pages equal size
+            cmd = f"pdf-crop-margins -v -s -u -a4 0 0 -200 0 -o '{pdf_file}_' '{pdf_file}' >> /dev/null"
+            os.system(cmd)
+
+            # remove the old file
+            os.system(f"rm -rf {pdf_file}")
+
+            # change the file name
+            os.system(f"mv '{pdf_file}_' '{pdf_file}'")
+
     return 0
 
 if __name__ == "__main__":
