@@ -41,7 +41,7 @@ class Code2pdf:
         self.input_file = ifile
         self.pdf_file = ofile or "{}.pdf".format(ifile.split('.')[0])
 
-    def highlight_file(self, linenos=True, style='default'):
+    def highlight_file(self, linenos=True, style='emacs'):
         """ Highlight the input file, and return HTML as a string. """
         try:
             lexer = lexers.get_lexer_for_filename(self.input_file)
@@ -74,7 +74,7 @@ class Code2pdf:
 
         return pygments.highlight(content, lexer, formatter)
 
-    def init_print(self, linenos=True, style="default"):
+    def init_print(self, linenos=True, style="emacs"):
         app = QApplication([])  # noqa
         doc = QTextDocument()
         doc_html = self.highlight_file(linenos=linenos, style=style)
@@ -116,8 +116,8 @@ def parse_arg():
     parser.add_argument(
         "-l",
         "--linenos",
-        help="include line numbers.",
-        action="store_true")
+        help="exclude line numbers.",
+        action="store_false")
     parser.add_argument(
         "outputfile",
         help="absolute path of the output pdf file",
@@ -134,7 +134,7 @@ def parse_arg():
         "--style",
         help="the style name for highlighting.",
         type=str,
-        default="default",
+        default="solarized-light",
         metavar="NAME")
     parser.add_argument(
         "-v",
@@ -156,11 +156,12 @@ def main():
         filenames = [y for x in os.walk(args.filename) for y in glob(os.path.join(x[0], '*.py'))]
         for filename in filenames:
             dirname = os.path.dirname(filename)
-            root_dir = dirname.split('/')[0] + '_pdf'
-            dirname = os.path.join([root_dir] + dirname.split('/')[1:])
+            dirname = "pdf_" + dirname
+            print("dirname", dirname)
             os.makedirs(dirname, exist_ok=True)
-            pdf_file = os.path.join(dirname, os.path.filename(filename).replace('.py', '.pdf'))
-            pdf = Code2pdf(args.filename, pdf_file, args.size)
+            pdf_file = os.path.join(dirname, filename.split('/')[-1])
+            pdf_file = pdf_file.replace(".py", ".pdf")
+            pdf = Code2pdf(filename, pdf_file, args.size)
             pdf.init_print(linenos=args.linenos, style=args.style)
         
     return 0
