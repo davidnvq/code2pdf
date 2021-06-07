@@ -41,7 +41,7 @@ class Code2pdf:
         self.input_file = ifile
         self.pdf_file = ofile or "{}.pdf".format(ifile.split('.')[0])
 
-    def highlight_file(self, linenos=True, style='emacs'):
+    def highlight_file(self, linenos=True, style='xcode'):
         """ Highlight the input file, and return HTML as a string. """
         try:
             lexer = lexers.get_lexer_for_filename(self.input_file)
@@ -74,7 +74,7 @@ class Code2pdf:
 
         return pygments.highlight(content, lexer, formatter)
 
-    def init_print(self, linenos=True, style="emacs"):
+    def init_print(self, linenos=True, style="xcode"):
         app = QApplication([])  # noqa
         doc = QTextDocument()
         doc_html = self.highlight_file(linenos=linenos, style=style)
@@ -134,7 +134,7 @@ def parse_arg():
         "--style",
         help="the style name for highlighting.",
         type=str,
-        default="solarized-light",
+        default="xcode",
         metavar="NAME")
     parser.add_argument(
         "-v",
@@ -154,6 +154,7 @@ def main():
     
     elif os.path.isdir(args.filename):
         filenames = [y for x in os.walk(args.filename) for y in glob(os.path.join(x[0], '*.py'))]
+        filenames = [f for f in filenames if '.git/' not in f]
         for filename in filenames:
             dirname = os.path.dirname(filename)
             dirname = "pdf_" + dirname
