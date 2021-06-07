@@ -8,6 +8,7 @@ import os
 import re
 import sys
 from glob import glob
+from tqdm import tqdm
 
 try:
     import pygments
@@ -87,7 +88,7 @@ class Code2pdf:
         printer.setPageSize(page_size_dict.get(self.size.lower(), QPrinter.A4))
         printer.setPageMargins(15, 15, 15, 15, QPrinter.Millimeter)
         doc.print_(printer)
-        logging.info("PDF created at %s" % (self.pdf_file))
+        # logging.info("PDF created at %s" % (self.pdf_file))
 
 
 def get_output_file(inputname, outputname=None):
@@ -155,16 +156,18 @@ def main():
     elif os.path.isdir(args.filename):
         filenames = [y for x in os.walk(args.filename) for y in glob(os.path.join(x[0], '*.py'))]
         filenames = [f for f in filenames if '.git/' not in f]
-        for filename in filenames:
+        for filename in tqdm(filenames):
             dirname = os.path.dirname(filename)
             dirname = "pdf_" + dirname
-            print("dirname", dirname)
             os.makedirs(dirname, exist_ok=True)
             pdf_file = os.path.join(dirname, filename.split('/')[-1])
             pdf_file = pdf_file.replace(".py", ".pdf")
             pdf = Code2pdf(filename, pdf_file, args.size)
             pdf.init_print(linenos=args.linenos, style=args.style)
-        
+
+            cmd = f"pdfcrop --noverbose --margins '0 0 180 -10' '{pdf_file}' '{pdf_file}' >> /dev/null"
+            os.system(cmd)
+
     return 0
 
 if __name__ == "__main__":
