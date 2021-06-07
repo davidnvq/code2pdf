@@ -7,6 +7,7 @@ import logging
 import os
 import re
 import sys
+from glob import glob
 
 try:
     import pygments
@@ -110,7 +111,7 @@ def parse_arg():
     )
     parser.add_argument(
         "filename",
-        help="absolute path of the python file",
+        help="absolute path of the python file or directory",
         type=str)
     parser.add_argument(
         "-l",
@@ -145,9 +146,23 @@ def parse_arg():
 
 def main():
     args = parse_arg()
-    pdf_file = get_output_file(args.filename, args.outputfile)
-    pdf = Code2pdf(args.filename, pdf_file, args.size)
-    pdf.init_print(linenos=args.linenos, style=args.style)
+    
+    if os.path.isfile(args.filename):
+        pdf_file = get_output_file(args.filename, args.outputfile)
+        pdf = Code2pdf(args.filename, pdf_file, args.size)
+        pdf.init_print(linenos=args.linenos, style=args.style)
+    
+    elif os.path.isdir(args.filename):
+        filenames = [y for x in os.walk(args.filename) for y in glob(os.path.join(x[0], '*.py'))]
+        for filename in filenames:
+            dirname = os.path.dirname(filename)
+            root_dir = dirname.split('/')[0] + '_pdf'
+            dirname = os.path.join([root_dir] + dirname.split('/')[1:])
+            os.makedirs(dirname, exist_ok=True)
+            pdf_file = os.path.join(dirname, os.path.filename(filename).replace('.py', '.pdf'))
+            pdf = Code2pdf(args.filename, pdf_file, args.size)
+            pdf.init_print(linenos=args.linenos, style=args.style)
+        
     return 0
 
 if __name__ == "__main__":
